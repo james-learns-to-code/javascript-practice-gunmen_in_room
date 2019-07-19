@@ -91,7 +91,7 @@ function getNumOfOccupiedPlaceIn(place, room) {
     directions.forEach(function(direction) {
         var traversedPlace = place;
         while (true) {
-            var traversedPlace = traverseRoomFrom(traversedPlace, room, direction);
+            traversedPlace = traverseRoomFrom(traversedPlace, room, direction);
             if (traversedPlace == undefined) {
                 break;
             } else if (traversedPlace.type == WALL) {
@@ -105,11 +105,10 @@ function getNumOfOccupiedPlaceIn(place, room) {
 }
 
 function makeDeadZoneAt(place, room) {
-    // Have to traverse 4 direction, Above, Left, Right, Below
     directions.forEach(function(direction) {
         var traversedPlace = place;
         while (true) {
-            var traversedPlace = traverseRoomFrom(traversedPlace, room, direction);
+            traversedPlace = traverseRoomFrom(traversedPlace, room, direction);
             if (traversedPlace == undefined) {
                 break;
             } else if (traversedPlace.type == WALL) {
