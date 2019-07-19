@@ -31,6 +31,9 @@ const exampleInput = [
     [EMPTY_SPACE, EMPTY_SPACE, EMPTY_SPACE,  EMPTY_SPACE, WALL,        EMPTY_SPACE, WALL,        EMPTY_SPACE] 
 ];
 
+// Have to traverse 4 direction, Above, Left, Right, Below
+var directions = [[0, -1], [-1, 0], [1, 0], [0, 1]]; 
+
 // MARK: Main
 function getMaximumGunmenIn(givenRoom) {
     var room = placeGunmanEfficientlyIn(givenRoom);
@@ -85,57 +88,40 @@ function getPlaceAt(row, column, room) {
 
 function getNumOfOccupiedPlaceIn(place, room) {
     var total = 1;  // Include standing place
-
-    // Have to traverse 4 direction, Above, Left, Right, Below
-    var directions = [[0, -1], [-1, 0], [1, 0], [0, 1]];
-    var stopIf = WALL;
-    var countIf = EMPTY_SPACE;
-    for (var i = 0; i < directions.length; i++) {
-        var direction = directions[i];
-        var num = getNumOfBlockIn(place, room, direction, stopIf, countIf);
-        total = total + num;
-    }
+    directions.forEach(function(direction) {
+        var traversedPlace = place;
+        while (true) {
+            var traversedPlace = traverseRoomFrom(traversedPlace, room, direction);
+            if (traversedPlace == undefined) {
+                break;
+            } else if (traversedPlace.type == WALL) {
+                break;
+            } else if (traversedPlace.type == EMPTY_SPACE) {
+                total++;
+            }
+        }
+    }); 
     return total;
-}
-
-function getNumOfBlockIn(place, room, direction, stopIf, countIf) {
-    var n = room.length; 
-    var num = 0; 
-    var xShift = direction[0];
-    var yShift = direction[1];
-    var row = place.row;
-    var col = place.column;
-    while (true) {
-        row = row + xShift;
-        col = col + yShift;
-        if ((row < 0) || (col < 0)) {  // reached end
-            break;
-        }
-        if ((row >= n) || (col >= n)) {
-            break;
-        }
-        var type = getPlaceTypeAt(row, col, room);
-        if (type == stopIf) {
-            break;
-        } else if (type == countIf) {
-            num++;
-        }
-    } 
-    return num;
 }
 
 function makeDeadZoneAt(place, room) {
     // Have to traverse 4 direction, Above, Left, Right, Below
-    var directions = [[0, -1], [-1, 0], [1, 0], [0, 1]];
-    var stopIf = WALL;
-    var makeIf = EMPTY_SPACE;
-    for (var i = 0; i < directions.length; i++) {
-        var direction = directions[i];
-        makeDeadPlaceIn(place, room, direction, stopIf, makeIf);
-    }
+    directions.forEach(function(direction) {
+        var traversedPlace = place;
+        while (true) {
+            var traversedPlace = traverseRoomFrom(traversedPlace, room, direction);
+            if (traversedPlace == undefined) {
+                break;
+            } else if (traversedPlace.type == WALL) {
+                break;
+            } else if (traversedPlace.type == EMPTY_SPACE) {
+                makeDeadPlaceAt(traversedPlace, room);
+            }
+        }
+    });
 }
 
-function makeDeadPlaceIn(place, room, direction, stopIf, makeIf) {
+function traverseRoomFrom(place, room, direction) {
     var n = room.length; 
     var xShift = direction[0];
     var yShift = direction[1];
@@ -145,19 +131,14 @@ function makeDeadPlaceIn(place, room, direction, stopIf, makeIf) {
         row = row + xShift;
         col = col + yShift;
         if ((row < 0) || (col < 0)) {  // reached end
-            break;
+            return undefined;
         }
         if ((row >= n) || (col >= n)) {
-            break;
+            return undefined;
         }
-        var type = getPlaceTypeAt(row, col, room);
-        if (type == stopIf) {
-            break;
-        } else if (type == makeIf) {
-            var place = getPlaceAt(row, col, room);
-            makeDeadPlaceAt(place, room);
-        }
-    }  
+        var place = getPlaceAt(row, col, room);
+        return place;
+    }
 }
 
 function makeDeadPlaceAt(place, room) {
@@ -194,7 +175,8 @@ function testGetSmallestPlaceInGivenRoom() {
     var smallestPlace = getSmallestPlaceIn(input)
     console.log("Output is %s", smallestPlace); 
 
-    if((testSmallestPlaceOutput.row === smallestPlace.row) && (testSmallestPlaceOutput.column === smallestPlace.column)) {
+    if((testSmallestPlaceOutput.row === smallestPlace.row) && 
+    (testSmallestPlaceOutput.column === smallestPlace.column)) {
         console.log("Test Passed");
     }else {
         console.log("Test Failed");
@@ -225,7 +207,7 @@ function removeDeadzoneIn(room) {
     var n = room.length; 
     for (var col = 0; col < n; col++) {
         for (var row = 0; row < n; row++) {
-        var type = getPlaceTypeAt(row, col, room);
+            var type = getPlaceTypeAt(row, col, room);
             if (type == DEAD_ZONE) {
                 var place = getPlaceAt(row, col, room);
                 makeEmptyPlaceAt(place, room);
@@ -241,8 +223,9 @@ function makeEmptyPlaceAt(place, room) {
 
 function copyTwoDimensionArray(array) {
     var newArray = [];
-    for (var i = 0; i < array.length; i++)
-        newArray[i] = array[i].slice();
+    array.forEach(function(element, i) {
+        newArray[i] = element.slice()
+    });
     return newArray;
 }
 
