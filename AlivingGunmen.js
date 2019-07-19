@@ -182,13 +182,6 @@ function getNumOfGunmanIn(room) {
     return count
 }
 
-function copyTwoDimensionArray(array) {
-    var newArray = [];
-    for (var i = 0; i < array.length; i++)
-        newArray[i] = array[i].slice();
-    return newArray;
-}
-
 // MARK: Test
 
 function testGetSmallestPlaceInGivenRoom() {
@@ -244,6 +237,13 @@ function removeDeadzoneIn(room) {
 
 function makeEmptyPlaceAt(place, room) {
     room[place.column][place.row] = EMPTY_SPACE;
+}
+
+function copyTwoDimensionArray(array) {
+    var newArray = [];
+    for (var i = 0; i < array.length; i++)
+        newArray[i] = array[i].slice();
+    return newArray;
 }
 
 function testGetMaximumGunmenInGivenRoom() {
