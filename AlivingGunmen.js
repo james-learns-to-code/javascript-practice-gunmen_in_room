@@ -1,39 +1,4 @@
 
-const EMPTY_SPACE = 0
-const WALL = 1
-const GUNMAN = 2
-const DEAD_ZONE = 3
-
-const testInput = [
-    [WALL,        WALL,        WALL,        EMPTY_SPACE], 
-    [EMPTY_SPACE, EMPTY_SPACE, EMPTY_SPACE, EMPTY_SPACE], 
-    [EMPTY_SPACE, WALL,        EMPTY_SPACE, EMPTY_SPACE], 
-    [WALL,        WALL,        WALL,        EMPTY_SPACE]
-];
-
-const testRoomOutput = [
-    [WALL,        WALL,        WALL,        GUNMAN     ], 
-    [EMPTY_SPACE, GUNMAN,      EMPTY_SPACE, EMPTY_SPACE], 
-    [GUNMAN,      WALL,        GUNMAN,      EMPTY_SPACE], 
-    [WALL,        WALL,        WALL,        EMPTY_SPACE]
-];
-const testSmallestPlaceOutput = {row: 0, column: 2, type: EMPTY_SPACE}
-const testOutput = 4;
-
-const exampleInput = [
-    [EMPTY_SPACE, WALL,        EMPTY_SPACE,  WALL,        EMPTY_SPACE, WALL,        EMPTY_SPACE, WALL       ], 
-    [EMPTY_SPACE, EMPTY_SPACE, EMPTY_SPACE,  EMPTY_SPACE, EMPTY_SPACE, WALL,        EMPTY_SPACE, EMPTY_SPACE], 
-    [WALL,        EMPTY_SPACE, WALL,         EMPTY_SPACE, EMPTY_SPACE, WALL,        EMPTY_SPACE, WALL       ], 
-    [EMPTY_SPACE, EMPTY_SPACE, EMPTY_SPACE,  EMPTY_SPACE, EMPTY_SPACE, EMPTY_SPACE, EMPTY_SPACE, EMPTY_SPACE], 
-    [EMPTY_SPACE, EMPTY_SPACE, EMPTY_SPACE,  WALL,        EMPTY_SPACE, EMPTY_SPACE, EMPTY_SPACE, EMPTY_SPACE], 
-    [EMPTY_SPACE, EMPTY_SPACE, EMPTY_SPACE,  EMPTY_SPACE, EMPTY_SPACE, WALL,        EMPTY_SPACE, WALL       ], 
-    [EMPTY_SPACE, WALL,        EMPTY_SPACE,  EMPTY_SPACE, EMPTY_SPACE, EMPTY_SPACE, EMPTY_SPACE, EMPTY_SPACE], 
-    [EMPTY_SPACE, EMPTY_SPACE, EMPTY_SPACE,  EMPTY_SPACE, WALL,        EMPTY_SPACE, WALL,        EMPTY_SPACE] 
-];
-
-// Have to traverse 4 direction, Above, Left, Right, Below
-var directions = [[0, -1], [-1, 0], [1, 0], [0, 1]]; 
-
 // MARK: Main
 function getMaximumGunmenIn(givenRoom) {
     var room = placeGunmanEfficientlyIn(givenRoom);
@@ -43,14 +8,23 @@ function getMaximumGunmenIn(givenRoom) {
 
 // MARK: Implementation
 
+// Place Type
+const EMPTY_SPACE = 0
+const WALL = 1
+const GUNMAN = 2
+const DEAD_ZONE = 3
+
+// For traverse 4 direction, Up, Left, Right, Down
+var directions = [[0, -1], [-1, 0], [1, 0], [0, 1]]; 
+
 function placeGunmanEfficientlyIn(room) { 
     while(true) {
         var smallestPlace = getSmallestPlaceIn(room)
         if (smallestPlace == undefined) {
             break;
         }
-        placeGunmanAt(smallestPlace, room);
         makeDeadZoneAt(smallestPlace, room);
+        placeGunmanAt(smallestPlace, room);
     }
     return room;
 }
@@ -87,19 +61,15 @@ function getPlaceAt(row, column, room) {
 }
 
 function getNumOfOccupiedPlaceIn(place, room) {
-    var total = 1;  // Include standing place
+    var total = 0;
     directions.forEach(function(direction) {
         var traversedPlace = place;
-        while (true) {
-            traversedPlace = traverseRoomFrom(traversedPlace, room, direction);
-            if (traversedPlace == undefined) {
-                break;
-            } else if (traversedPlace.type == WALL) {
-                break;
-            } else if (traversedPlace.type == EMPTY_SPACE) {
+        while ((traversedPlace != undefined) && (traversedPlace.type != WALL)) {
+            if (traversedPlace.type == EMPTY_SPACE) {
                 total++;
             }
-        }
+            traversedPlace = getNextRoomFrom(traversedPlace, room, direction);
+        } 
     }); 
     return total;
 }
@@ -107,37 +77,28 @@ function getNumOfOccupiedPlaceIn(place, room) {
 function makeDeadZoneAt(place, room) {
     directions.forEach(function(direction) {
         var traversedPlace = place;
-        while (true) {
-            traversedPlace = traverseRoomFrom(traversedPlace, room, direction);
-            if (traversedPlace == undefined) {
-                break;
-            } else if (traversedPlace.type == WALL) {
-                break;
-            } else if (traversedPlace.type == EMPTY_SPACE) {
+        while ((traversedPlace != undefined) && (traversedPlace.type != WALL)) {
+            if (traversedPlace.type == EMPTY_SPACE) {
                 makeDeadPlaceAt(traversedPlace, room);
             }
+            traversedPlace = getNextRoomFrom(traversedPlace, room, direction);
         }
     });
 }
 
-function traverseRoomFrom(place, room, direction) {
+function getNextRoomFrom(place, room, direction) {
     var n = room.length; 
     var xShift = direction[0];
     var yShift = direction[1];
-    var row = place.row;
-    var col = place.column;
-    while (true) {
-        row = row + xShift;
-        col = col + yShift;
-        if ((row < 0) || (col < 0)) {  // reached end
-            return undefined;
-        }
-        if ((row >= n) || (col >= n)) {
-            return undefined;
-        }
-        var place = getPlaceAt(row, col, room);
-        return place;
+    var row = place.row + xShift;
+    var col = place.column + yShift;
+    if ((row < 0) || (col < 0)) {  // reached end
+        return undefined;
+    }else if ((row >= n) || (col >= n)) {
+        return undefined;
     }
+    var place = getPlaceAt(row, col, room);
+    return place;
 }
 
 function makeDeadPlaceAt(place, room) {
@@ -163,6 +124,33 @@ function getNumOfGunmanIn(room) {
 }
 
 // MARK: Test
+
+const testInput = [
+    [WALL,        WALL,        WALL,        EMPTY_SPACE], 
+    [EMPTY_SPACE, EMPTY_SPACE, EMPTY_SPACE, EMPTY_SPACE], 
+    [EMPTY_SPACE, WALL,        EMPTY_SPACE, EMPTY_SPACE], 
+    [WALL,        WALL,        WALL,        EMPTY_SPACE]
+];
+
+const testRoomOutput = [
+    [WALL,        WALL,        WALL,        GUNMAN     ], 
+    [EMPTY_SPACE, GUNMAN,      EMPTY_SPACE, EMPTY_SPACE], 
+    [GUNMAN,      WALL,        GUNMAN,      EMPTY_SPACE], 
+    [WALL,        WALL,        WALL,        EMPTY_SPACE]
+];
+const testSmallestPlaceOutput = {row: 0, column: 2, type: EMPTY_SPACE}
+const testOutput = 4;
+
+const exampleInput = [
+    [EMPTY_SPACE, WALL,        EMPTY_SPACE,  WALL,        EMPTY_SPACE, WALL,        EMPTY_SPACE, WALL       ], 
+    [EMPTY_SPACE, EMPTY_SPACE, EMPTY_SPACE,  EMPTY_SPACE, EMPTY_SPACE, WALL,        EMPTY_SPACE, EMPTY_SPACE], 
+    [WALL,        EMPTY_SPACE, WALL,         EMPTY_SPACE, EMPTY_SPACE, WALL,        EMPTY_SPACE, WALL       ], 
+    [EMPTY_SPACE, EMPTY_SPACE, EMPTY_SPACE,  EMPTY_SPACE, EMPTY_SPACE, EMPTY_SPACE, EMPTY_SPACE, EMPTY_SPACE], 
+    [EMPTY_SPACE, EMPTY_SPACE, EMPTY_SPACE,  WALL,        EMPTY_SPACE, EMPTY_SPACE, EMPTY_SPACE, EMPTY_SPACE], 
+    [EMPTY_SPACE, EMPTY_SPACE, EMPTY_SPACE,  EMPTY_SPACE, EMPTY_SPACE, WALL,        EMPTY_SPACE, WALL       ], 
+    [EMPTY_SPACE, WALL,        EMPTY_SPACE,  EMPTY_SPACE, EMPTY_SPACE, EMPTY_SPACE, EMPTY_SPACE, EMPTY_SPACE], 
+    [EMPTY_SPACE, EMPTY_SPACE, EMPTY_SPACE,  EMPTY_SPACE, WALL,        EMPTY_SPACE, WALL,        EMPTY_SPACE] 
+];
 
 function testGetSmallestPlaceInGivenRoom() {
     console.log("testGetSmallestPlaceInGivenRoom");
@@ -200,34 +188,6 @@ function testPlaceGunmanEfficientlyInGivenRoom() {
     }
 }
 
-// For testing
-
-function removeDeadzoneIn(room) {
-    var n = room.length; 
-    for (var col = 0; col < n; col++) {
-        for (var row = 0; row < n; row++) {
-            var type = getPlaceTypeAt(row, col, room);
-            if (type == DEAD_ZONE) {
-                var place = getPlaceAt(row, col, room);
-                makeEmptyPlaceAt(place, room);
-            }
-        }
-    }
-    return room;
-}
-
-function makeEmptyPlaceAt(place, room) {
-    room[place.column][place.row] = EMPTY_SPACE;
-}
-
-function copyTwoDimensionArray(array) {
-    var newArray = [];
-    array.forEach(function(element, i) {
-        newArray[i] = element.slice()
-    });
-    return newArray;
-}
-
 function testGetMaximumGunmenInGivenRoom() {
     console.log("testGetMaximumGunmenInGivenRoom");
 
@@ -253,6 +213,34 @@ function getMaximumGunmenInExampleRoom() {
 
     var num = getMaximumGunmenIn(input);
     console.log("Output is %s", num);
+}
+
+// Utility for testing
+
+function removeDeadzoneIn(room) {
+    var n = room.length; 
+    for (var col = 0; col < n; col++) {
+        for (var row = 0; row < n; row++) {
+            var type = getPlaceTypeAt(row, col, room);
+            if (type == DEAD_ZONE) {
+                var place = getPlaceAt(row, col, room);
+                makeEmptyPlaceAt(place, room);
+            }
+        }
+    }
+    return room;
+}
+
+function makeEmptyPlaceAt(place, room) {
+    room[place.column][place.row] = EMPTY_SPACE;
+}
+
+function copyTwoDimensionArray(array) {
+    var newArray = [];
+    array.forEach(function(element, i) {
+        newArray[i] = element.slice()
+    });
+    return newArray;
 }
 
 testGetSmallestPlaceInGivenRoom();
