@@ -36,13 +36,12 @@ function getSmallestPlaceIn(room) {
     for (var col = 0; col < n; col++) {
         for (var row = 0; row < n; row++) {
             var place = getPlaceAt(row, col, room);
-            if (place.type != EMPTY_SPACE) {
-                continue;
-            }
-            var num = getNumOfOccupiedPlaceIn(place, room); 
-            if ((smallestNum == undefined) || (smallestNum > num)) {                
-                smallestNum = num;
-                smallestPlace = place;
+            if (place.type == EMPTY_SPACE) {
+                var num = getNumOfOccupiedPlaceIn(place, room); 
+                if ((smallestNum == undefined) || (smallestNum > num)) {                
+                    smallestNum = num;
+                    smallestPlace = place;
+                }
             }
         }
     }
@@ -78,9 +77,7 @@ function makeDeadZoneAt(place, room) {
     directions.forEach(function(direction) {
         var traversedPlace = place;
         while ((traversedPlace != undefined) && (traversedPlace.type != WALL)) {
-            if (traversedPlace.type == EMPTY_SPACE) {
-                makeDeadPlaceAt(traversedPlace, room);
-            }
+            makeDeadPlaceAt(traversedPlace, room);
             traversedPlace = getNextRoomFrom(traversedPlace, room, direction);
         }
     });
