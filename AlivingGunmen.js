@@ -23,8 +23,8 @@ function placeGunmanEfficientlyIn(room) {
         if (smallestPlace == undefined) {
             break;
         }
-        makeDeadZoneAt(smallestPlace, room);
         placeGunmanAt(smallestPlace, room);
+        makeDeadZoneAt(smallestPlace, room);
     }
     return room;
 }
@@ -63,11 +63,14 @@ function getNumOfOccupiedPlaceIn(place, room) {
     var total = 0;
     directions.forEach(function(direction) {
         var traversedPlace = place;
-        while ((traversedPlace != undefined) && (traversedPlace.type != WALL)) {
+        while (true) {
+            traversedPlace = getNextRoomFrom(traversedPlace, room, direction);
+            if ((traversedPlace == undefined) || (traversedPlace.type == WALL)) {
+                break;
+            }
             if (traversedPlace.type == EMPTY_SPACE) {
                 total++;
             }
-            traversedPlace = getNextRoomFrom(traversedPlace, room, direction);
         } 
     }); 
     return total;
@@ -76,9 +79,12 @@ function getNumOfOccupiedPlaceIn(place, room) {
 function makeDeadZoneAt(place, room) {
     directions.forEach(function(direction) {
         var traversedPlace = place;
-        while ((traversedPlace != undefined) && (traversedPlace.type != WALL)) {
-            makeDeadPlaceAt(traversedPlace, room);
+        while (true) {
             traversedPlace = getNextRoomFrom(traversedPlace, room, direction);
+            if ((traversedPlace == undefined) || (traversedPlace.type == WALL)) {
+                break;
+            }
+            makeDeadPlaceAt(traversedPlace, room);
         }
     });
 }
